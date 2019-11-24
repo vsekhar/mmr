@@ -246,3 +246,25 @@ func TestSiblings(t *testing.T) {
 		}
 	}
 }
+
+func TestFirstChild(t *testing.T) {
+	// pos, height, branching, first child
+	table := [][]int{
+		// binary
+		{2, 1, 2, 0},
+		{5, 1, 2, 3},
+		{6, 2, 2, 2},
+
+		// ternary
+		{3, 1, 3, 0},
+		{7, 1, 3, 4},
+		{11, 1, 3, 8},
+		{12, 2, 3, 3},
+	}
+	for _, vals := range table {
+		pos, h, b, fc := vals[0], vals[1], vals[2], vals[3]
+		if out := firstChild(pos, h, b); out != fc {
+			t.Errorf("firstChild(%d, %d, %d) is %d, expected %d", pos, h, b, out, fc)
+		}
+	}
+}
