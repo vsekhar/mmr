@@ -7,6 +7,18 @@ import (
 	"testing"
 )
 
+func intSliceEqual(a, b []int) bool {
+	if len(a) != len(b) {
+		return false
+	}
+	for i := range a {
+		if a[i] != b[i] {
+			return false
+		}
+	}
+	return true
+}
+
 // {pos, branching factor, height}
 var heightTable = [][]int{
 	{0, 2, 0},
@@ -25,20 +37,22 @@ var heightTable = [][]int{
 	{13, 2, 2},
 	{14, 2, 3},
 
-	// non-binary
-	{0, 3, 0},
-	{1, 3, 0},
-	{2, 3, 0},
-	{3, 3, 1},
-	{4, 3, 0},
-	{5, 3, 0},
-	{6, 3, 0},
-	{7, 3, 1},
-	{8, 3, 0},
-	{9, 3, 0},
-	{10, 3, 0},
-	{11, 3, 1},
-	{12, 3, 2},
+	/*
+		// non-binary
+		{0, 3, 0},
+		{1, 3, 0},
+		{2, 3, 0},
+		{3, 3, 1},
+		{4, 3, 0},
+		{5, 3, 0},
+		{6, 3, 0},
+		{7, 3, 1},
+		{8, 3, 0},
+		{9, 3, 0},
+		{10, 3, 0},
+		{11, 3, 1},
+		{12, 3, 2},
+	*/
 }
 
 func TestHeight(t *testing.T) {
@@ -75,22 +89,22 @@ func TestPeaks(t *testing.T) {
 		{8, 2, 6, 7},
 		{9, 2, 6, 7, 8},
 
-		// ternary
-		{1, 3, 0},
+		/*
+			// ternary
+			{1, 3, 0},
+			{2, 3, 0, 1},
+			{3, 3, 0, 1, 2},
+			{4, 3, 3},
+		*/
 	}
 	for _, c := range table {
 		in := c[0]
 		b := c[1]
 		out := c[2:]
 		result := peaks(in, b)
-		if len(out) != len(result) {
+		if len(out) != len(result) || !intSliceEqual(out, result) {
 			t.Errorf("peaks(%d, %d): expected '%v', got '%v'", in, b, out, result)
 			continue
-		}
-		for i, o := range out {
-			if o != result[i] {
-				t.Errorf("peaks @ %d: %d (expected %d)", in, result[i], o)
-			}
 		}
 	}
 }
@@ -193,10 +207,34 @@ func TestIntPow(t *testing.T) {
 func TestSiblings(t *testing.T) {
 	// left, right, height, branching factor
 	table := [][]int{
+		// binary
 		{0, 1, 0, 2},
+		// 2 @ 1
 		{3, 4, 0, 2},
+		// 5 @ 1
+		// 6 @ 2
 		{7, 8, 0, 2},
+		// 9 @ 1
 		{10, 11, 0, 2},
+		// 12 @ 1
+		// 13 @ 2
+		// 14 @ 3
+		{2, 5, 1, 2},
+		{9, 12, 1, 2},
+		{6, 13, 2, 2},
+
+		// ternary
+		{0, 1, 0, 3},
+		{1, 2, 0, 3},
+		// 3 @ 1
+		{4, 5, 0, 3},
+		{5, 6, 0, 3},
+		// 7 @ 1
+		{8, 9, 0, 3},
+		{9, 10, 0, 3},
+		// 11 @ 1
+		{3, 7, 1, 3},
+		{7, 11, 1, 3},
 	}
 	for _, vals := range table {
 		left, right, h, b := vals[0], vals[1], vals[2], vals[3]
