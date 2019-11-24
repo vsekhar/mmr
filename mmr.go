@@ -3,7 +3,6 @@
 // See:
 //  https://github.com/mimblewimble/grin/blob/master/doc/mmr.md
 //  https://github.com/opentimestamps/opentimestamps-server/blob/master/doc/merkle-mountain-range.md
-//  Algos: https://github.com/mimblewimble/grin/blob/master/core/src/core/pmmr/pmmr.rs
 package mmr
 
 import (

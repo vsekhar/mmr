@@ -1,5 +1,7 @@
 package mmr
 
+//  Algos: https://github.com/mimblewimble/grin/blob/master/core/src/core/pmmr/pmmr.rs
+
 import (
 	"math"
 	"math/bits"
@@ -75,12 +77,9 @@ func height(n, b int) int {
 	if b == 2 {
 		// bit-shifting fast-path
 		var peakSize uint64 = math.MaxUint64 >> bits.LeadingZeros64(pos)
-		var bitmap uint64
 		for peakSize != 0 {
-			bitmap <<= 1
 			if pos >= peakSize {
 				pos -= peakSize
-				bitmap |= 1
 			}
 			peakSize >>= 1
 		}
