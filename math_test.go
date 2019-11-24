@@ -7,52 +7,81 @@ import (
 	"testing"
 )
 
-func TestHeightBinary(t *testing.T) {
-	// {size, branching factor, height}
-	table := [][]int{
-		{0, 2, 0},
-		{1, 2, 0},
-		{2, 2, 1},
-		{3, 2, 0},
-		{4, 2, 0},
-		{5, 2, 1},
-		{6, 2, 2},
-		{7, 2, 0},
-		{8, 2, 0},
-		{9, 2, 1},
-		{10, 2, 0},
-		{11, 2, 0},
-		{12, 2, 1},
-		{13, 2, 2},
-		{14, 2, 3},
-		// TODO: implement and test other branching factors
+// {pos, branching factor, height}
+var heightTable = [][]int{
+	{0, 2, 0},
+	{1, 2, 0},
+	{2, 2, 1},
+	{3, 2, 0},
+	{4, 2, 0},
+	{5, 2, 1},
+	{6, 2, 2},
+	{7, 2, 0},
+	{8, 2, 0},
+	{9, 2, 1},
+	{10, 2, 0},
+	{11, 2, 0},
+	{12, 2, 1},
+	{13, 2, 2},
+	{14, 2, 3},
+
+	// non-binary
+	{0, 3, 0},
+	{1, 3, 0},
+	{2, 3, 0},
+	{3, 3, 1},
+	{4, 3, 0},
+	{5, 3, 0},
+	{6, 3, 0},
+	{7, 3, 1},
+	{8, 3, 0},
+	{9, 3, 0},
+	{10, 3, 0},
+	{11, 3, 1},
+	{12, 3, 2},
+}
+
+func TestHeight(t *testing.T) {
+	doTestHeight(t)
+}
+
+func BenchmarkHeight(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		doTestHeight(b)
 	}
-	for _, c := range table {
-		in, b, out := c[0], c[1], c[2]
-		result := height(in, b)
+}
+
+func doTestHeight(t testing.TB) {
+	for _, c := range heightTable {
+		pos, b, out := c[0], c[1], c[2]
+		result := height(pos, b)
 		if result != out {
-			t.Errorf("height(%d, %d): %d (expected %d)", in, b, result, out)
+			t.Errorf("height(%d, %d): %d (expected %d)", pos, b, result, out)
 		}
 	}
 }
 
 func TestPeaks(t *testing.T) {
-	// {size, peaks...}
+	// {size, branching factor, peaks...}
 	table := [][]int{
-		{1, 0},
-		{2, 0, 1},
-		{3, 2},
-		{4, 2, 3},
-		{5, 2, 3, 4},
-		{6, 2, 5},
-		{7, 6},
-		{8, 6, 7},
-		{9, 6, 7, 8},
+		// binary
+		{1, 2, 0},
+		{2, 2, 0, 1},
+		{3, 2, 2},
+		{4, 2, 2, 3},
+		{5, 2, 2, 3, 4},
+		{6, 2, 2, 5},
+		{7, 2, 6},
+		{8, 2, 6, 7},
+		{9, 2, 6, 7, 8},
+
+		// ternary
+		{1, 3, 0},
 	}
-	b := 2
 	for _, c := range table {
 		in := c[0]
-		out := c[1:]
+		b := c[1]
+		out := c[2:]
 		result := peaks(in, b)
 		if len(out) != len(result) {
 			t.Errorf("peaks(%d, %d): expected '%v', got '%v'", in, b, out, result)
@@ -66,7 +95,7 @@ func TestPeaks(t *testing.T) {
 	}
 }
 
-func TestFloorLog(t *testing.T) {
+func TestIntLog(t *testing.T) {
 	// {value, base, out}
 	table := [][]int{
 		// base 2
@@ -87,6 +116,28 @@ func TestFloorLog(t *testing.T) {
 		{15, 2, 3},
 		{16, 2, 4},
 
+		// base powers of 2
+		{3, 4, 0},
+		{4, 4, 1},
+		{5, 4, 1},
+		{16, 4, 2},
+		{63, 4, 2},
+		{64, 4, 3},
+		{15, 16, 0},
+		{16, 16, 1},
+		{255, 16, 1},
+		{256, 16, 2},
+
+		// base 3
+		{1, 3, 0},
+		{2, 3, 0},
+		{3, 3, 1},
+		{7, 3, 1},
+		{9, 3, 2},
+		{10, 3, 2},
+		{80, 3, 3},
+		{81, 3, 4},
+
 		// base 10
 		{7, 10, 0},
 		{22, 10, 1},
@@ -104,7 +155,7 @@ func TestFloorLog(t *testing.T) {
 		in, base, out := c[0], c[1], c[2]
 		result := intLog(in, base)
 		if result != out {
-			t.Errorf("floorLog(%d): %d (expected %d)", in, result, out)
+			t.Errorf("intLog(%d, %d): %d (expected %d)", in, base, result, out)
 		}
 	}
 }
@@ -117,10 +168,18 @@ func TestIntPow(t *testing.T) {
 		{3, 2, 9},
 		{4, 2, 16},
 		{5, 2, 25},
+		{6, 2, 36},
+		{7, 2, 49},
+		{8, 2, 64},
 
 		{4, 3, 64},
 		{5, 3, 125},
 		{6, 3, 216},
+
+		// powers of two
+		{4, 5, 1024},
+		{16, 4, 65536},
+		{256, 2, 65536},
 	}
 	for _, c := range table {
 		x, y, out := c[0], c[1], c[2]
