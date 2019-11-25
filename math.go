@@ -68,14 +68,18 @@ func parent(pos, h, b int) int {
 // peaks returns the index of peaks in an MMR of size n and branching factor b.
 //
 // Source: https://github.com/mimblewimble/grin/blob/78220febeda94595159ece675e77e26986a3c11d/core/src/core/pmmr/pmmr.rs#L402
-func peaks(n, b int) []int {
+func peaks(n, b int) (peaks []int) {
 	switch {
 	case n < 1:
 		panic("size of MMR must be greater than 0")
 	case b < 2:
 		panic("branching factor must be at least 2")
+	case n < b:
+		for i := 0; i < n; i++ {
+			peaks = append(peaks, i)
+		}
+		return peaks
 	case b == 2:
-		var peaks []int
 		p := 0 // partition (advances as we bag peaks)
 		for n-p > 0 {
 			nextPeak := intPow(b, (intLog(n-p+1, b))) - 1
@@ -84,9 +88,19 @@ func peaks(n, b int) []int {
 		}
 		return peaks
 	default:
-		// Possibly helpful:
-		// https://ece.uwaterloo.ca/~dwharder/aads/Lecture_materials/5.04.N-ary_trees.pdf
-		panic("branching factors other than 2 are not implemented")
+		pos := n - 1
+		p := 0
+		for {
+			cpos := pos - p
+			h := intLog((cpos*(b-1)/b)+1, b)        // height IF pos was on left edge
+			i := (b * (1 - intPow(b, h)) / (1 - b)) // pos IF pos was on left edge
+			peaks = append(peaks, p+i)
+			if i == cpos {
+				return peaks // pos is indeed on left edge
+			}
+			s := (intPow(b, h+1) - 1) / (b - 1) // size of perfect tree to left
+			p += s
+		}
 	}
 }
 
@@ -104,9 +118,7 @@ func height(pos, b int) int {
 		return 0
 	case b == 2:
 		var upos = uint(pos)
-		// bit-shifting fast-path
-		// peakSize := uint(intPow(b, intLog(n, b)+1)) - 1
-		// optimised for b=2
+		// bit-shifting fast-path for b=2
 		const allOnes = (1 << bits.UintSize) - 1
 		var peakSize uint = allOnes >> bits.LeadingZeros(upos)
 		for peakSize != 0 {
@@ -117,6 +129,20 @@ func height(pos, b int) int {
 		}
 		return int(upos)
 	default:
-		panic("branching factors other than 2 are not implemented")
+		// Subtract away perfect trees to the left of pos until pos is on the
+		// left edge. Nodes on left edge d at (zero-based) height h are sums:
+		//  d(0)=0
+		//  d(h)=d(h-1) + b^h
+		//  d(h)=(b*(1-b^h))/(1-b)
+		//  h = log_b((d*(1-b)/b) + 1)
+		for {
+			h := intLog((pos*(b-1)/b)+1, b)         // height IF pos was on left edge
+			i := (b * (1 - intPow(b, h)) / (1 - b)) // pos IF pos was on left edge
+			if i == pos {
+				return h // pos is indeed on left edge
+			}
+			s := (intPow(b, h+1) - 1) / (b - 1) // size of perfect tree to left
+			pos -= s
+		}
 	}
 }
