@@ -205,6 +205,7 @@ func TestIntPow(t *testing.T) {
 }
 
 func TestSiblings(t *testing.T) {
+	// TODO: invalid siblings?
 	// left, right, height, branching factor
 	table := [][]int{
 		// binary

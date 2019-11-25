@@ -7,6 +7,48 @@ import (
 	"math/bits"
 )
 
+// intPow computes x to the power of y exclusively using integers. If y is negative,
+// intPow panics.
+func intPow(x, y int) int {
+	switch {
+	case y < 0:
+		panic("intPow cannot raise an integer to a negative power")
+	case y == 0:
+		return 1
+	case x == 2:
+		return x << (y - 1)
+	case x&(x-1) == 0:
+		return x << ((bits.Len(uint(x)) - 1) * (y - 1))
+	default:
+		ret := 1
+		for i := 0; i < y; i++ {
+			ret *= x
+		}
+		return ret
+	}
+}
+
+// intLog returns the largest integer smaller than or equal to log_b(n).
+func intLog(n, b int) int {
+	if n < 1 || b < 1 {
+		panic("n and b must be greater than zero")
+	}
+	if b == 2 {
+		return bits.Len(uint(n)) - 1
+	}
+	fn, fb := float64(n), float64(b)
+	if b&(b-1) == 0 {
+		if n&(n-1) != 0 {
+			return bits.Len(uint(n)) / bits.Len(uint(b))
+		}
+		return int(math.Log2(fn)/float64(bits.Len(uint(b)))) + 1
+	}
+	if b == 10 {
+		return int(math.Log10(fn))
+	}
+	return int(math.Log(fn) / math.Log(fb))
+}
+
 func firstChild(pos, h, b int) int {
 	return pos - intPow(b, h)
 }
@@ -48,27 +90,6 @@ func peaks(n, b int) []int {
 	panic("branching factors other than 2 are not implemented")
 }
 
-// intLog returns the largest integer smaller than or equal to log_b(n).
-func intLog(n, b int) int {
-	if n < 1 || b < 1 {
-		panic("n and b must be greater than zero")
-	}
-	if b == 2 {
-		return bits.Len(uint(n)) - 1
-	}
-	fn, fb := float64(n), float64(b)
-	if b&(b-1) == 0 {
-		if n&(n-1) != 0 {
-			return bits.Len(uint(n)) / bits.Len(uint(b))
-		}
-		return int(math.Log2(fn)/float64(bits.Len(uint(b)))) + 1
-	}
-	if b == 10 {
-		return int(math.Log10(fn))
-	}
-	return int(math.Log(fn) / math.Log(fb))
-}
-
 // height returns the height (counting from 0) of the node at index n in the MMR with
 // branching factor b.
 func height(n, b int) int {
@@ -100,25 +121,4 @@ func height(n, b int) int {
 		return int(un)
 	}
 	panic("branching factors other than 2 are not implemented")
-}
-
-// intPow computes x to the power of y exclusively using integers. If y is negative,
-// intPow panics.
-func intPow(x, y int) int {
-	switch {
-	case y < 0:
-		panic("intPow cannot raise an integer to a negative power")
-	case y == 0:
-		return 1
-	case x == 2:
-		return x << (y - 1)
-	case x&(x-1) == 0:
-		return x << ((bits.Len(uint(x)) - 1) * (y - 1))
-	default:
-		ret := 1
-		for i := 0; i < y; i++ {
-			ret *= x
-		}
-		return ret
-	}
 }
