@@ -28,7 +28,7 @@ func intPow(x, y int) int {
 	}
 }
 
-// intLog returns the largest integer smaller than or equal to log_b(n).
+// intLog returns the largest integer smaller than or equal to log_b(x).
 func intLog(x, b int) int {
 	switch {
 	case x < 1:
