@@ -29,23 +29,23 @@ func intPow(x, y int) int {
 }
 
 // intLog returns the largest integer smaller than or equal to log_b(n).
-func intLog(n, b int) int {
+func intLog(x, b int) int {
 	switch {
-	case n < 1:
+	case x < 1:
 		panic("n must be greater than 0")
 	case b < 1:
 		panic("b must be greater than zero")
 	case b == 2:
-		return bits.Len(uint(n)) - 1
+		return bits.Len(uint(x)) - 1
 	case b == 10:
-		return int(math.Log10(float64(n)))
+		return int(math.Log10(float64(x)))
 	case b&(b-1) == 0:
-		if n&(n-1) != 0 {
-			return bits.Len(uint(n)) / bits.Len(uint(b))
+		if x&(x-1) != 0 {
+			return bits.Len(uint(x)) / bits.Len(uint(b))
 		}
-		return int(math.Log2(float64(n))/float64(bits.Len(uint(b)))) + 1
+		return int(math.Log2(float64(x))/float64(bits.Len(uint(b)))) + 1
 	default:
-		return int(math.Log(float64(n)) / math.Log(float64(b)))
+		return int(math.Log(float64(x)) / math.Log(float64(b)))
 	}
 }
 
@@ -92,30 +92,30 @@ func peaks(n, b int) []int {
 
 // height returns the height (counting from 0) of the node at index n in the MMR with
 // branching factor b.
-func height(n, b int) int {
+func height(pos, b int) int {
 	switch {
-	case n < 0:
+	case pos < 0:
 		panic("index cannot be negative")
 	case b < 2:
 		panic("branching factor must be at least 2")
-	case n == 0:
+	case pos == 0:
 		return 0
-	case n < b:
+	case pos < b:
 		return 0
 	case b == 2:
-		var un = uint(n)
+		var upos = uint(pos)
 		// bit-shifting fast-path
 		// peakSize := uint(intPow(b, intLog(n, b)+1)) - 1
 		// optimised for b=2
 		const allOnes = (1 << bits.UintSize) - 1
-		var peakSize uint = allOnes >> bits.LeadingZeros(un)
+		var peakSize uint = allOnes >> bits.LeadingZeros(upos)
 		for peakSize != 0 {
-			if un >= peakSize {
-				un -= peakSize
+			if upos >= peakSize {
+				upos -= peakSize
 			}
 			peakSize >>= 1
 		}
-		return int(un)
+		return int(upos)
 	default:
 		panic("branching factors other than 2 are not implemented")
 	}
