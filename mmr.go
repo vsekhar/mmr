@@ -23,21 +23,26 @@ type Interface interface {
 	// hash cannot be found, ok is false.
 	GetIndex(h []byte) (i int, ok bool)
 
-	// Digest returns a hash that summarizes the MMR in its current state.
-	Digest() []byte
+	// Digest returns a hash that summarizes the MMR as it was when it had size n.
+	// Digest panics if n is greater than the length of the underlying Array.
+	Digest(n int) []byte
 
 	// Prove provides a set of hashes that prove the inclusion of the value at index i
-	// or nil if such a proof cannot be constructed.
+	// or nils if such a proof cannot be constructed.
 	//
-	// prefix comprises the hashes of the children of record i, if any. suffix comprises
-	// the hashes of nodes from record i to a peak as well as all subsequent peaks.
-	// digest is the hash of the tree overall (equivalent to calling Digest).
+	// Verifing the proof comprises the following:
 	//
-	// The caller can verify the proof by writing the data from prefix into a hash function,
-	// followed by the data at record i, followed by suffix. The result should equal the
-	// digest.
+	//  1) hash each array in sequence[0]
+	//  2) hash the timestamp of record i
+	//  3) hash the data of record i
+	//  4) hash the salt of record i
+	//  5) hash each array in sequence[1], and store this hash
+	//  6) hash each array in sequence[2]
+	//  7) hash the value stored in step 5
+	//  8) hash each array in sequence [3]
 	//
-	Proof(i int) (prefix []byte, suffix []byte, digest []byte)
+	// The result should equal digest.
+	Proof(i int) (sequence [][]byte, digest []byte)
 }
 
 // An Array is any user-provided ordered container with the accessors needed to build it
@@ -113,7 +118,7 @@ func (m *mmr) GetIndex(hash []byte) (i int, ok bool) {
 	return
 }
 
-func (m *mmr) Digest() []byte {
+func (m *mmr) Digest(n int) []byte {
 	m.extend()
 	// ps := peaks(m.Len(), m.branching)
 	ret := make([]byte, 0)
@@ -135,14 +140,7 @@ func (m *mmr) childPrefix(pos int) []byte {
 	return []byte{}
 }
 
-func (m *mmr) Proof(i int) (prefix []byte, suffix []byte, digest []byte) {
+func (m *mmr) Proof(i int) (sequence [][]byte, digest []byte) {
 	m.extend()
-	prefix = m.childPrefix(i)
-	_ = height(i, m.branching)
-	// figure out firstChild of my parent (might not be me)
-	// rightSibling = pos + 2^h + 1
-	// parent := firstChild + intPow(m.branching, h+1))
-
-	digest = m.Digest()
-	return nil, nil, nil
+	return nil, nil
 }
