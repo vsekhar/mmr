@@ -53,6 +53,22 @@ func firstChild(pos, h, b int) int {
 	return pos - intPow(b, h)
 }
 
+// leftEdgeNode returns the zero-based index at the left-most edge at zero-based
+// height h of the MMR with branching factor b.
+func leftEdgePos(h, b int) int {
+	return (b * (1 - intPow(b, h)) / (1 - b))
+}
+
+func children(pos, h, b int) []int {
+	// difference between children is left-edge node index + 1 at children's level
+	delta := leftEdgePos(h-1, b) + 1
+	children := make([]int, 0, b)
+	for c := firstChild(pos, h, b); c < pos; c += delta {
+		children = append(children, c)
+	}
+	return children
+}
+
 func rightSibling(pos, h, b int) int {
 	return pos + (intPow(b, h+1)-1)/(b-1)
 }
@@ -136,10 +152,10 @@ func height(pos, b int) int {
 		//  d(h)=(b*(1-b^h))/(1-b)
 		//  h = log_b((d*(1-b)/b) + 1)
 		for {
-			h := intLog((pos*(b-1)/b)+1, b)         // height IF pos was on left edge
-			i := (b * (1 - intPow(b, h)) / (1 - b)) // pos IF pos was on left edge
+			h := intLog((pos*(b-1)/b)+1, b) // height IF pos was on left edge
+			i := leftEdgePos(h, b)          // pos IF pos was on left edge
 			if i == pos {
-				return h // pos is indeed on left edge
+				return h // pos is indeed on left edge, done
 			}
 			s := (intPow(b, h+1) - 1) / (b - 1) // size of perfect tree to left
 			pos -= s

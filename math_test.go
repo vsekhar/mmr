@@ -131,11 +131,8 @@ func TestPeaks(t *testing.T) {
 		{13, 3, 12},
 	}
 	for _, c := range table {
-		in := c[0]
-		b := c[1]
-		out := c[2:]
-		result := peaks(in, b)
-		if len(out) != len(result) || !intSliceEqual(out, result) {
+		in, b, out := c[0], c[1], c[2:]
+		if result := peaks(in, b); !intSliceEqual(out, result) {
 			t.Errorf("peaks(%d, %d): expected '%v', got '%v'", in, b, out, result)
 			continue
 		}
@@ -301,4 +298,26 @@ func TestFirstChild(t *testing.T) {
 			t.Errorf("firstChild(%d, %d, %d) is %d, expected %d", pos, h, b, out, fc)
 		}
 	}
+}
+
+func TestChildren(t *testing.T) {
+	// pos, height, branching, children...
+	table := [][]int{
+		// binary
+		{2, 1, 2, 0, 1},
+		{5, 1, 2, 3, 4},
+
+		// ternary
+		{3, 1, 3, 0, 1, 2},
+		{16, 1, 3, 13, 14, 15},
+		{25, 2, 3, 16, 20, 24},
+		{39, 3, 3, 12, 25, 38},
+	}
+	for _, vals := range table {
+		pos, h, b, expected := vals[0], vals[1], vals[2], vals[3:]
+		if out := children(pos, h, b); !intSliceEqual(expected, out) {
+			t.Errorf("children(%d, %d, %d): expected '%v', got '%v'", pos, h, b, expected, out)
+		}
+	}
+
 }

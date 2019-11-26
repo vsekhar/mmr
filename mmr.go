@@ -33,7 +33,7 @@ type Interface interface {
 	// Verifing the proof comprises the following:
 	//
 	//  1) hash each array in sequence[0]
-	//  2) hash the timestamp of record i
+	//  2) hash the timestamp of record i provided when the record was added
 	//  3) hash the data of record i
 	//  4) hash the salt of record i
 	//  5) hash each array in sequence[1], and store this hash
@@ -58,6 +58,8 @@ type Interface interface {
 type Array interface {
 	// Len returns the length of the Array.
 	Len() int
+
+	// HashAt returns a hash of the bytes append(prefix, Array[i]...).
 	HashAt(i int) []byte
 }
 
