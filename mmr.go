@@ -14,6 +14,40 @@ const (
 	hashLengthBytes = 64
 )
 
+type pathEntry struct {
+	pre  [][]byte // record hashes of siblings to the left
+	post [][]byte // record hashes of siblings to the right
+}
+
+type digest struct {
+	n    int
+	hash []byte
+}
+
+type proof struct {
+	// path is a sequence of sibling record hashes used to construct successive parent
+	// record hashes all the way up to a node's peak. If path is empty, the node is
+	// itself a peak.
+	path []pathEntry
+
+	// rightPeaks is a sequence of peak record hashes to the right of the peak reached
+	// via path. It is ordered from right to left. If rightPeaks is empty, the node is
+	// the rightmost (newest) node which is both a leaf and an peak.
+	rightPeaks [][]byte
+
+	// leftPeaks is a sequence of peak record hashes to the left of the peak reached
+	// via path. It is ordered from right to left. If leftPeaks is empty, the node is
+	// the leftmost (largest) peak.
+	leftPeaks [][]byte
+
+	// digest is the digest of the full tree at the time this proof was generated.
+	digest digest
+}
+
+// TODO: proving digest a is in digest b, by proving that each of the peaks of digest a
+// is in digest b. I.e. a digest proof is a []proof and validates if all the constituent
+// proofs validate.
+
 // Interface provides methods specific to querying an MMR.
 //
 // An MMR is created by passing an underlying Array to NewMMR. New values can be added
@@ -68,6 +102,10 @@ type Array interface {
 	// be used.
 	HashAt(i int) []byte
 }
+
+// Timestamping and salting is a function for the Array. I.e. adding to the Array should
+// involve hashing those additional values. MMR is only concerned with the overall resulting
+// hash of data.
 
 type hashSet struct {
 	ofData []byte // from Array.HashAt()

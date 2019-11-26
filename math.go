@@ -10,7 +10,8 @@ import (
 // intPow computes x to the power of y exclusively using integers. If y is negative,
 // intPow panics.
 //
-// This function runs in O(y) time in the general case.
+// This function runs in O(y) time in the general case and O(1) time if x is a power
+// of 2.
 func intPow(x, y int) int {
 	switch {
 	case y < 0:
@@ -121,8 +122,8 @@ func peaks(n, b int) (peaks []int) {
 		p := 0
 		for {
 			cpos := pos - p
-			h := intLog((cpos*(b-1)/b)+1, b)        // height IF pos was on left edge
-			i := leftEdgePos(h, b)                  // pos IF pos was on left edge
+			h := intLog((cpos*(b-1)/b)+1, b) // height IF pos was on left edge
+			i := leftEdgePos(h, b)           // pos IF pos was on left edge
 			peaks = append(peaks, p+i)
 			if i == cpos {
 				return peaks // pos is indeed on left edge
