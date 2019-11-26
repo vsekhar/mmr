@@ -6,7 +6,12 @@
 package mmr
 
 import (
+	"github.com/btcsuite/btcutil/base58"
 	"golang.org/x/crypto/sha3"
+)
+
+const (
+	hashLengthBytes = 64
 )
 
 // Interface provides methods specific to querying an MMR.
@@ -59,21 +64,27 @@ type Array interface {
 	// Len returns the length of the Array.
 	Len() int
 
-	// HashAt returns a hash of the bytes append(prefix, Array[i]...).
+	// HashAt returns a hash of element i. Any hash function producing an array of bytes may
+	// be used.
 	HashAt(i int) []byte
+}
+
+type hashSet struct {
+	ofData []byte // from Array.HashAt()
+	ofNode []byte // of children in order from first to last (if any) followed by hash ofData.
 }
 
 type mmr struct {
 	array     Array
-	hashes    [][]byte
-	indexes   map[string]int // need to convert []byte hashes to string
+	hashes    []hashSet
+	index     map[string]int // key is base58 encoded hash of data
 	hasher    sha3.ShakeHash
 	branching int
 }
 
 // New returns a new MMR constructed from Array a using Hash h with branching factor b.
 // If a is nil or b is less than two, New panics.
-func New(a Array, h sha3.ShakeHash, b int) Interface {
+func New(a Array, b int) Interface {
 	if a == nil {
 		panic("array required")
 	}
@@ -82,41 +93,59 @@ func New(a Array, h sha3.ShakeHash, b int) Interface {
 	}
 	ret := &mmr{
 		array:     a,
-		hashes:    make([][]byte, a.Len()),
-		indexes:   make(map[string]int),
-		hasher:    h,
+		hashes:    make([]hashSet, 0, a.Len()),
+		index:     make(map[string]int),
+		hasher:    sha3.NewShake256(),
 		branching: b,
 	}
 	ret.extend()
 	return ret
 }
 
-func (m *mmr) extend() int {
+func (m *mmr) extend() {
 	if m.array.Len() < len(m.hashes) {
 		panic("array length decreased; MMR does not support deletion")
 	}
-	s := m.Len()
-	i := s
-	for ; i < m.array.Len(); i++ {
-		h := height(i, m.branching)
-		// prefix := []byte{}
-		if h > 0 {
-			// TODO
+
+	aLen := m.array.Len()
+	for i := len(m.hashes); i < aLen; i++ {
+		var hashes hashSet
+		hashes.ofData = m.array.HashAt(i)
+		m.index[base58.Encode(hashes.ofData)] = i
+
+		cs := children(i, height(i, m.branching), m.branching)
+		chl := 0 // children hash length
+		for _, c := range cs {
+			chl += len(m.hashes[c].ofNode)
 		}
-		hash := m.array.HashAt(i)
-		m.hashes = append(m.hashes, hash)
-		m.indexes[string(hash)] = i
+		b := make([]byte, 0, chl+len(hashes.ofData))
+		for _, c := range cs {
+			b = append(b, m.hashes[c].ofNode...)
+		}
+		b = append(b, hashes.ofData...)
+		m.hasher.Reset()
+		m.hasher.Write(b)
+		hashes.ofNode = new([hashLengthBytes]byte)[:]
+		n, err := m.hasher.Read(hashes.ofNode)
+		if n != hashLengthBytes {
+			panic("short read from hasher")
+		}
+		if err != nil {
+			panic(err)
+		}
+
+		m.hashes = append(m.hashes, hashes)
 	}
-	return i - s
 }
 
 func (m *mmr) Len() int {
+	m.extend()
 	return m.array.Len()
 }
 
 func (m *mmr) GetIndex(hash []byte) (i int, ok bool) {
 	m.extend()
-	i, ok = m.indexes[string(hash)]
+	i, ok = m.index[base58.Encode(hash)]
 	return
 }
 
@@ -126,20 +155,6 @@ func (m *mmr) Digest(n int) []byte {
 	ret := make([]byte, 0)
 	// TODO: bag peaks
 	return ret
-}
-
-// childPrefix returns the concatenation of the hashes of the children of a node
-// at pos, or an empty slice if the node has no children.
-func (m *mmr) childPrefix(pos int) []byte {
-	h := height(pos, m.branching)
-	if h > 0 {
-		var prefix []byte
-		for i := firstChild(pos, h, m.branching); i < pos; i++ {
-			prefix = append(prefix, m.hashes[i]...)
-		}
-		return prefix
-	}
-	return []byte{}
 }
 
 func (m *mmr) Proof(i int) (sequence [][]byte, digest []byte) {

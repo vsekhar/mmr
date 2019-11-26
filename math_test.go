@@ -7,18 +7,6 @@ import (
 	"testing"
 )
 
-func intSliceEqual(a, b []int) bool {
-	if len(a) != len(b) {
-		return false
-	}
-	for i := range a {
-		if a[i] != b[i] {
-			return false
-		}
-	}
-	return true
-}
-
 // {pos, branching factor, height}
 var heightTable = [][]int{
 	{0, 2, 0},
@@ -303,6 +291,9 @@ func TestFirstChild(t *testing.T) {
 func TestChildren(t *testing.T) {
 	// pos, height, branching, children...
 	table := [][]int{
+		// leaves
+		{0, 0, 2},
+
 		// binary
 		{2, 1, 2, 0, 1},
 		{5, 1, 2, 3, 4},

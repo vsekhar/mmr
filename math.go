@@ -9,6 +9,8 @@ import (
 
 // intPow computes x to the power of y exclusively using integers. If y is negative,
 // intPow panics.
+//
+// This function runs in O(y) time in the general case.
 func intPow(x, y int) int {
 	switch {
 	case y < 0:
@@ -29,6 +31,8 @@ func intPow(x, y int) int {
 }
 
 // intLog returns the largest integer smaller than or equal to log_b(x).
+//
+// This function runs in O(1) time.
 func intLog(x, b int) int {
 	switch {
 	case x < 1:
@@ -59,14 +63,23 @@ func leftEdgePos(h, b int) int {
 	return (b * (1 - intPow(b, h)) / (1 - b))
 }
 
+// children returns the indexes of the children of the node at index pos and height h
+// in an MMR with branching factor b. If the node at pos is a leaf, children returns nil.
 func children(pos, h, b int) []int {
-	// difference between children is left-edge node index + 1 at children's level
-	delta := leftEdgePos(h-1, b) + 1
-	children := make([]int, 0, b)
-	for c := firstChild(pos, h, b); c < pos; c += delta {
-		children = append(children, c)
+	switch {
+	case h < 0:
+		panic("height cannot be negative")
+	case h == 0:
+		return nil
+	default:
+		// difference between children is left-edge node index + 1 at children's level
+		delta := leftEdgePos(h-1, b) + 1
+		children := make([]int, 0, b)
+		for c := firstChild(pos, h, b); c < pos; c += delta {
+			children = append(children, c)
+		}
+		return children
 	}
-	return children
 }
 
 func rightSibling(pos, h, b int) int {
@@ -109,7 +122,7 @@ func peaks(n, b int) (peaks []int) {
 		for {
 			cpos := pos - p
 			h := intLog((cpos*(b-1)/b)+1, b)        // height IF pos was on left edge
-			i := (b * (1 - intPow(b, h)) / (1 - b)) // pos IF pos was on left edge
+			i := leftEdgePos(h, b)                  // pos IF pos was on left edge
 			peaks = append(peaks, p+i)
 			if i == cpos {
 				return peaks // pos is indeed on left edge
