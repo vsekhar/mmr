@@ -50,7 +50,7 @@ type proof struct {
 
 // Interface provides methods specific to querying an MMR.
 //
-// An MMR is created by passing an underlying Array to NewMMR. New values can be added
+// An MMR is created by passing an underlying Array to New. New values can be added
 // to the MMR by adding them to the underlying array.
 //
 // Modifying or deleting a value from the underlying Array will likely corrupt an MMR
