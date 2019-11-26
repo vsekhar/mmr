@@ -53,7 +53,7 @@ func firstChild(pos, h, b int) int {
 	return pos - intPow(b, h)
 }
 
-// leftEdgeNode returns the zero-based index at the left-most edge at zero-based
+// leftEdgePos returns the zero-based index at the left-most edge at zero-based
 // height h of the MMR with branching factor b.
 func leftEdgePos(h, b int) int {
 	return (b * (1 - intPow(b, h)) / (1 - b))
