@@ -3,6 +3,7 @@ package mmr
 //  Algos: https://github.com/mimblewimble/grin/blob/master/core/src/core/pmmr/pmmr.rs
 
 import (
+	"fmt"
 	"math"
 	"math/bits"
 )
@@ -39,9 +40,9 @@ func intPow(x, y int) int {
 func intLog(x, b int) int {
 	switch {
 	case x < 1:
-		panic("n must be greater than 0")
+		panic(fmt.Sprintf("x must be greater than 0, x=%d", x))
 	case b < 1:
-		panic("b must be greater than zero")
+		panic(fmt.Sprintf("b must be greater than 0, b=%d", b))
 	case b == 2:
 		return bits.Len(uint(x)) - 1
 	case b == 10:
@@ -167,7 +168,7 @@ func height(pos, b int) int {
 		//  d(h)=d(h-1) + b^h
 		//  d(h)=(b*(1-b^h))/(1-b)
 		//  h = log_b((d*(1-b)/b) + 1)
-		for {
+		for pos > 0 {
 			h := intLog((pos*(b-1)/b)+1, b) // height IF pos was on left edge
 			i := leftEdgePos(h, b)          // pos IF pos was on left edge
 			if i == pos {
@@ -176,5 +177,6 @@ func height(pos, b int) int {
 			s := (intPow(b, h+1) - 1) / (b - 1) // size of perfect tree to left
 			pos -= s
 		}
+		return 0
 	}
 }
