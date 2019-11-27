@@ -1,6 +1,7 @@
 package mmr
 
 import (
+	"crypto/rand"
 	"fmt"
 	"testing"
 
@@ -32,13 +33,39 @@ func TestMMR(t *testing.T) {
 	}
 }
 
+type byteArray [][]byte
+
+func (b *byteArray) Len() int {
+	return len(*b)
+}
+
+func (b *byteArray) HashAt(i int) []byte {
+	r := sha3.Sum512((*b)[i])
+	return r[:]
+}
+
 func BenchmarkBranching(b *testing.B) {
 	bs := []int{2, 3, 4, 8, 10, 16, 32, 64, 100, 128, 256, 512, 1024, 2048, 8192}
-	// create Array, load with values
+	const arraySize = 2 << 1   // 4096
+	const elementSize = 2 << 5 // 64
+	array := new(byteArray)
+	*array = make([][]byte, arraySize)
+	for i := 0; i < arraySize; i++ {
+		var buf [elementSize]byte
+		n, err := rand.Read(buf[:])
+		if n != elementSize {
+			b.Fatal("short read")
+		}
+		if err != nil {
+			b.Error(err)
+		}
+		(*array)[i] = buf[:]
+	}
 	for _, branching := range bs {
+		mmr := New(array, branching)
 		// create MMR with specified branching
 		b.Run(fmt.Sprintf("b=%d", branching), func(b *testing.B) {
-			// extend MMR
+			_, _ = mmr.Proof(arraySize - 1)
 		})
 	}
 }
