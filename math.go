@@ -20,6 +20,8 @@ func intPow(x, y int) int {
 		return 1
 	case x == 2:
 		return x << (y - 1)
+	case x == 10:
+		return int(math.Pow10(y))
 	case x&(x-1) == 0:
 		return x << ((bits.Len(uint(x)) - 1) * (y - 1))
 	default:

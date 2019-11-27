@@ -4,6 +4,7 @@ package mmr
 // independent of any specific implementation of MMRs.
 
 import (
+	"math"
 	"testing"
 )
 
@@ -127,99 +128,143 @@ func TestPeaks(t *testing.T) {
 	}
 }
 
+// {value, base, out}
+var intLogTable = [][]int{
+	// base 2
+	{1, 2, 0},
+	{2, 2, 1},
+	{3, 2, 1},
+	{4, 2, 2},
+	{5, 2, 2},
+	{6, 2, 2},
+	{7, 2, 2},
+	{8, 2, 3},
+	{9, 2, 3},
+	{10, 2, 3},
+	{11, 2, 3},
+	{12, 2, 3},
+	{13, 2, 3},
+	{14, 2, 3},
+	{15, 2, 3},
+	{16, 2, 4},
+
+	// base powers of 2
+	{3, 4, 0},
+	{4, 4, 1},
+	{5, 4, 1},
+	{16, 4, 2},
+	{63, 4, 2},
+	{64, 4, 3},
+	{15, 16, 0},
+	{16, 16, 1},
+	{255, 16, 1},
+	{256, 16, 2},
+
+	// base 3
+	{1, 3, 0},
+	{2, 3, 0},
+	{3, 3, 1},
+	{7, 3, 1},
+	{9, 3, 2},
+	{10, 3, 2},
+	{80, 3, 3},
+	{81, 3, 4},
+
+	// base 10
+	{7, 10, 0},
+	{22, 10, 1},
+	{89, 10, 1},
+	{420, 10, 2},
+	{1427, 10, 3},
+
+	// other: base 7
+	{5, 7, 0},
+	{9, 7, 1},
+	{32, 7, 1},
+	{76, 7, 2},
+}
+
 func TestIntLog(t *testing.T) {
-	// {value, base, out}
-	table := [][]int{
-		// base 2
-		{1, 2, 0},
-		{2, 2, 1},
-		{3, 2, 1},
-		{4, 2, 2},
-		{5, 2, 2},
-		{6, 2, 2},
-		{7, 2, 2},
-		{8, 2, 3},
-		{9, 2, 3},
-		{10, 2, 3},
-		{11, 2, 3},
-		{12, 2, 3},
-		{13, 2, 3},
-		{14, 2, 3},
-		{15, 2, 3},
-		{16, 2, 4},
-
-		// base powers of 2
-		{3, 4, 0},
-		{4, 4, 1},
-		{5, 4, 1},
-		{16, 4, 2},
-		{63, 4, 2},
-		{64, 4, 3},
-		{15, 16, 0},
-		{16, 16, 1},
-		{255, 16, 1},
-		{256, 16, 2},
-
-		// base 3
-		{1, 3, 0},
-		{2, 3, 0},
-		{3, 3, 1},
-		{7, 3, 1},
-		{9, 3, 2},
-		{10, 3, 2},
-		{80, 3, 3},
-		{81, 3, 4},
-
-		// base 10
-		{7, 10, 0},
-		{22, 10, 1},
-		{89, 10, 1},
-		{420, 10, 2},
-		{1427, 10, 3},
-
-		// other: base 7
-		{5, 7, 0},
-		{9, 7, 1},
-		{32, 7, 1},
-		{76, 7, 2},
-	}
-	for _, c := range table {
+	for _, c := range intLogTable {
 		in, base, out := c[0], c[1], c[2]
 		result := intLog(in, base)
 		if result != out {
 			t.Errorf("intLog(%d, %d): %d (expected %d)", in, base, result, out)
 		}
+		builtin := int(math.Log(float64(in)) / math.Log(float64(base)))
+		if result != builtin {
+			t.Errorf("intLog(%d, %d): %d (builtin %d) - test case may be wrong", in, base, result, builtin)
+		}
 	}
 }
 
+func BenchmarkIntLog(b *testing.B) {
+	b.Run("builtin", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			for _, c := range intLogTable {
+				_ = int(math.Pow(float64(c[0]), float64(c[1])))
+			}
+		}
+	})
+	b.Run("custom", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			for _, c := range intLogTable {
+				_ = intLog(c[0], c[1])
+			}
+		}
+	})
+}
+
+// {x, y, out}
+var intPowTable = [][]int{
+	{1, 2, 1},
+	{2, 2, 4},
+	{3, 2, 9},
+	{4, 2, 16},
+	{5, 2, 25},
+	{6, 2, 36},
+	{7, 2, 49},
+	{8, 2, 64},
+
+	{4, 3, 64},
+	{5, 3, 125},
+	{6, 3, 216},
+
+	// powers of two
+	{4, 5, 1024},
+	{16, 4, 65536},
+	{256, 2, 65536},
+}
+
 func TestIntPow(t *testing.T) {
-	// {x, y, out}
-	table := [][]int{
-		{1, 2, 1},
-		{2, 2, 4},
-		{3, 2, 9},
-		{4, 2, 16},
-		{5, 2, 25},
-		{6, 2, 36},
-		{7, 2, 49},
-		{8, 2, 64},
-
-		{4, 3, 64},
-		{5, 3, 125},
-		{6, 3, 216},
-
-		// powers of two
-		{4, 5, 1024},
-		{16, 4, 65536},
-		{256, 2, 65536},
-	}
-	for _, c := range table {
+	for _, c := range intPowTable {
 		x, y, out := c[0], c[1], c[2]
 		result := intPow(x, y)
 		if result != out {
 			t.Errorf("intPow(%d, %d): %d (expected %d)", x, y, result, out)
 		}
+		builtin := int(math.Pow(float64(x), float64(y)))
+		if result != builtin {
+			t.Errorf("intPow(%d, %d): %d (builtin %d) - test case may be wrong", x, y, result, builtin)
+		}
 	}
+}
+
+func BenchmarkIntPow(b *testing.B) {
+	b.Run("builtin", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			for _, c := range intPowTable {
+				_ = int(math.Pow(float64(c[0]), float64(c[1])))
+			}
+		}
+	})
+	b.Run("custom", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			for _, c := range intPowTable {
+				_ = intPow(c[0], c[1])
+			}
+		}
+	})
 }
 
 func TestSiblings(t *testing.T) {
