@@ -180,3 +180,27 @@ func height(pos, b int) int {
 		return 0
 	}
 }
+
+func siblings(pos, h, b int) (pre, post []int) {
+	panic("not implemented")
+}
+
+type pathEntry struct {
+	pre  []int
+	post []int
+}
+
+// path returns a sequence of nodes whose hashes comprise a proof of the node
+// at pos.
+func path(pos, b int) (p []pathEntry) {
+	h := height(pos, b)
+	cs := children(pos, h, b)
+	if cs != nil {
+		cpe := pathEntry{pre: make([]int, 0, len(cs))}
+		for _, c := range cs {
+			cpe.pre = append(cpe.pre, c)
+		}
+		p = append(p, cpe)
+	}
+	return nil
+}

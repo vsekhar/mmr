@@ -86,6 +86,7 @@ var heightTable = [][]int{
 	{3, 5, 0},
 	{4, 5, 0},
 	{5, 5, 1},
+	{6, 5, 0},
 }
 
 func TestHeight(t *testing.T) {

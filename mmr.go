@@ -14,7 +14,7 @@ const (
 	hashLengthBytes = 64
 )
 
-type pathEntry struct {
+type pathHashes struct {
 	pre  [][]byte // record hashes of siblings to the left
 	post [][]byte // record hashes of siblings to the right
 }
@@ -28,7 +28,7 @@ type proof struct {
 	// path is a sequence of sibling record hashes used to construct successive parent
 	// record hashes all the way up to a node's peak. If path is empty, the node is
 	// itself a peak.
-	path []pathEntry
+	path []pathHashes
 
 	// rightPeaks is a sequence of peak record hashes to the right of the peak reached
 	// via path. It is ordered from right to left. If rightPeaks is empty, the node is
@@ -198,5 +198,8 @@ func (m *mmr) Digest(n int) []byte {
 func (m *mmr) Proof(i int) (sequence [][]byte, digest []byte) {
 	m.extend()
 	// TODO: prove some stuff.
-	return nil, nil
+	ps := peaks(i, m.branching)
+	_ = ps
+
+	panic("not implemented")
 }

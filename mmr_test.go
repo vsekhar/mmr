@@ -46,27 +46,32 @@ func (b *byteArray) HashAt(i int) []byte {
 
 func BenchmarkBranching(b *testing.B) {
 	bs := []int{
+		// powers of 2
 		2,
-		3,
 		4,
 		8,
-		10,
-		13, // prime
 		16,
-		23, // prime
 		32,
-		47, // prime
 		64,
-		100,
-		101, // prime
 		128,
 		256,
-		257, // prime
-		509, // prime
 		512,
-		1021, // prime
 		1024,
 		2048,
+
+		// powers of 10
+		10,
+		100,
+		1000,
+
+		// primes
+		3,
+		13,
+		47,
+		101,
+		257,
+		509,
+		1021,
 	}
 	const arraySize = 2 << 11  // 4096
 	const elementSize = 2 << 5 // 64
