@@ -197,5 +197,6 @@ func (m *mmr) Digest(n int) []byte {
 
 func (m *mmr) Proof(i int) (sequence [][]byte, digest []byte) {
 	m.extend()
+	// TODO: prove some stuff.
 	return nil, nil
 }

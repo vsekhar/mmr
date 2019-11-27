@@ -45,8 +45,30 @@ func (b *byteArray) HashAt(i int) []byte {
 }
 
 func BenchmarkBranching(b *testing.B) {
-	bs := []int{2, 3, 4, 8, 10, 16, 32, 64, 100, 128, 256, 512, 1024, 2048, 8192}
-	const arraySize = 2 << 1   // 4096
+	bs := []int{
+		2,
+		3,
+		4,
+		8,
+		10,
+		13, // prime
+		16,
+		23, // prime
+		32,
+		47, // prime
+		64,
+		100,
+		101, // prime
+		128,
+		256,
+		257, // prime
+		509, // prime
+		512,
+		1021, // prime
+		1024,
+		2048,
+	}
+	const arraySize = 2 << 11  // 4096
 	const elementSize = 2 << 5 // 64
 	array := new(byteArray)
 	*array = make([][]byte, arraySize)
@@ -61,11 +83,28 @@ func BenchmarkBranching(b *testing.B) {
 		}
 		(*array)[i] = buf[:]
 	}
+	// initial hashing
 	for _, branching := range bs {
-		mmr := New(array, branching)
-		// create MMR with specified branching
-		b.Run(fmt.Sprintf("b=%d", branching), func(b *testing.B) {
-			_, _ = mmr.Proof(arraySize - 1)
+		b.Run(fmt.Sprintf("creation, b=%d", branching), func(b *testing.B) {
+			for i := 0; i < b.N; i++ {
+				m := New(array, branching)
+				if len(m.(*mmr).hashes) != arraySize {
+					b.Errorf("MMR hashes length %d, expected %d", len(m.(*mmr).hashes), arraySize)
+				}
+			}
+		})
+	}
+
+	// proving
+	for _, branching := range bs {
+		m := New(array, branching)
+		b.Run(fmt.Sprintf("proving, b=%d", branching), func(b *testing.B) {
+			for i := 0; i < b.N; i++ {
+				proofs := bs // use branching factor array as pos array for proofs
+				for _, p := range proofs {
+					_, _ = m.Proof(p)
+				}
+			}
 		})
 	}
 }
