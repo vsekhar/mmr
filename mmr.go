@@ -136,35 +136,39 @@ func New(a Array, b int) Interface {
 		hasher:    sha3.NewShake256(),
 		branching: b,
 	}
-	ret.extend()
 	return ret
 }
 
-func (m *mmr) extend() {
-	if m.array.Len() < len(m.hashes) {
-		panic("array length decreased; MMR does not support deletion")
+// extend updates the MMR's data structure to cover elements [0, n), if necessary,
+// and returns the number of elements that were hashed.
+func (m *mmr) extend(n int) int {
+	if n < len(m.hashes) {
+		return 0
+	}
+	if m.array.Len() < n {
+		n = m.array.Len()
 	}
 
-	aLen := m.array.Len()
-	for i := len(m.hashes); i < aLen; i++ {
-		var hashes hashSet
-		hashes.ofData = m.array.HashAt(i)
-		m.index[base58.Encode(hashes.ofData)] = i
+	delta := n - len(m.hashes)
+	for i := len(m.hashes); i < n; i++ {
+		var hash hashSet
+		hash.ofData = m.array.HashAt(i)
+		m.index[base58.Encode(hash.ofData)] = i
 
 		cs := children(i, height(i, m.branching), m.branching)
 		chl := 0 // children hash length
 		for _, c := range cs {
 			chl += len(m.hashes[c].ofNode)
 		}
-		b := make([]byte, 0, chl+len(hashes.ofData))
+		b := make([]byte, 0, chl+len(hash.ofData))
 		for _, c := range cs {
 			b = append(b, m.hashes[c].ofNode...)
 		}
-		b = append(b, hashes.ofData...)
+		b = append(b, hash.ofData...)
 		m.hasher.Reset()
 		m.hasher.Write(b)
-		hashes.ofNode = new([hashLengthBytes]byte)[:]
-		n, err := m.hasher.Read(hashes.ofNode)
+		hash.ofNode = new([hashLengthBytes]byte)[:]
+		n, err := m.hasher.Read(hash.ofNode)
 		if n != hashLengthBytes {
 			panic("short read from hasher")
 		}
@@ -172,23 +176,28 @@ func (m *mmr) extend() {
 			panic(err)
 		}
 
-		m.hashes = append(m.hashes, hashes)
+		m.hashes = append(m.hashes, hash)
 	}
+	return delta
 }
 
 func (m *mmr) Len() int {
-	m.extend()
 	return m.array.Len()
 }
 
 func (m *mmr) GetIndex(hash []byte) (i int, ok bool) {
-	m.extend()
+	// already hashed?
+	if i, ok = m.index[base58.Encode(hash)]; ok {
+		return
+	}
+	// complete search
+	m.extend(m.Len())
 	i, ok = m.index[base58.Encode(hash)]
 	return
 }
 
 func (m *mmr) Digest(n int) []byte {
-	m.extend()
+	m.extend(n)
 	// ps := peaks(m.Len(), m.branching)
 	ret := make([]byte, 0)
 	// TODO: bag peaks
@@ -196,10 +205,17 @@ func (m *mmr) Digest(n int) []byte {
 }
 
 func (m *mmr) Proof(i int) (sequence [][]byte, digest []byte) {
-	m.extend()
-	// TODO: prove some stuff.
+	// extend hashes up to the newest peak needed for the proof
 	ps := peaks(i, m.branching)
-	_ = ps
+	maxPeak := 0
+	for _, p := range ps {
+		if p > maxPeak {
+			maxPeak = p
+		}
+	}
+	m.extend(maxPeak + 1)
+
+	// TODO: compute proof
 
 	panic("not implemented")
 }
