@@ -6,6 +6,8 @@
 package mmr
 
 import (
+	"io"
+
 	"github.com/btcsuite/btcutil/base58"
 	"golang.org/x/crypto/sha3"
 )
@@ -162,17 +164,13 @@ func (m *mmr) extend(n int) int {
 		m.index[base58.Encode(hash.ofData)] = i
 
 		cs := children(i, height(i, m.branching), m.branching)
-		chl := 0 // children hash length
+		bs := make([][]byte, 0, len(cs)+1)
 		for _, c := range cs {
-			chl += len(m.hashes[c].ofNode)
+			bs = append(bs, m.hashes[c].ofNode)
 		}
-		b := make([]byte, 0, chl+len(hash.ofData))
-		for _, c := range cs {
-			b = append(b, m.hashes[c].ofNode...)
-		}
-		b = append(b, hash.ofData...)
+		bs = append(bs, hash.ofData)
 		m.hasher.Reset()
-		m.hasher.Write(b)
+		io.Copy(m.hasher, ReadSlices(bs))
 		hash.ofNode = new([hashLengthBytes]byte)[:]
 		n, err := m.hasher.Read(hash.ofNode)
 		if n != hashLengthBytes {
