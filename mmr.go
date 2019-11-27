@@ -66,8 +66,8 @@ type Interface interface {
 	// Digest panics if n is greater than the length of the underlying Array.
 	Digest(n int) []byte
 
-	// Prove provides a set of hashes that prove the inclusion of the value at index i
-	// or nils if such a proof cannot be constructed.
+	// AuditProof provides a set of hashes that prove the inclusion of the value
+	// at index i or nils if such a proof cannot be constructed.
 	//
 	// Verifing the proof comprises the following:
 	//
@@ -81,7 +81,13 @@ type Interface interface {
 	//  8) hash each array in sequence [3]
 	//
 	// The result should equal digest.
-	Proof(i int) (sequence [][]byte, digest []byte)
+	AuditProof(i int) (sequence [][]byte, digest []byte)
+
+	// ConsistencyProof TBD
+	//
+	//  - prove digest to digest
+	//  - do we need the digests? just the sizes? one or the other?
+	ConsistencyProof(n int)
 }
 
 // An Array is any user-provided ordered container with the accessors needed to build it
@@ -204,7 +210,7 @@ func (m *mmr) Digest(n int) []byte {
 	return ret
 }
 
-func (m *mmr) Proof(i int) (sequence [][]byte, digest []byte) {
+func (m *mmr) AuditProof(i int) (sequence [][]byte, digest []byte) {
 	// extend hashes up to the newest peak needed for the proof
 	ps := peaks(i, m.branching)
 	maxPeak := 0
@@ -217,5 +223,9 @@ func (m *mmr) Proof(i int) (sequence [][]byte, digest []byte) {
 
 	// TODO: compute proof
 
+	panic("not implemented")
+}
+
+func (m *mmr) ConsistencyProof(n int) {
 	panic("not implemented")
 }

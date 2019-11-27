@@ -93,6 +93,7 @@ func BenchmarkBranching(b *testing.B) {
 		b.Run(fmt.Sprintf("creation, b=%d", branching), func(b *testing.B) {
 			for i := 0; i < b.N; i++ {
 				m := New(array, branching)
+				m.(*mmr).extend(array.Len())
 				if len(m.(*mmr).hashes) != arraySize {
 					b.Errorf("MMR hashes length %d, expected %d", len(m.(*mmr).hashes), arraySize)
 				}
@@ -107,7 +108,7 @@ func BenchmarkBranching(b *testing.B) {
 			for i := 0; i < b.N; i++ {
 				proofs := bs // use branching factor array as pos array for proofs
 				for _, p := range proofs {
-					_, _ = m.Proof(p)
+					_, _ = m.AuditProof(p)
 				}
 			}
 		})
