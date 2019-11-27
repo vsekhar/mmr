@@ -1,6 +1,7 @@
 package mmr
 
 import (
+	"fmt"
 	"testing"
 
 	"golang.org/x/crypto/sha3"
@@ -28,5 +29,16 @@ func TestMMR(t *testing.T) {
 		if n, ok := mmr.GetIndex(h); !ok || n != i {
 			t.Errorf("indexes don't match: %d from array, %d, %t from MMR", i, n, ok)
 		}
+	}
+}
+
+func BenchmarkBranching(b *testing.B) {
+	bs := []int{2, 3, 4, 8, 10, 16, 32, 64, 100, 128, 256, 512, 1024, 2048, 8192}
+	// create Array, load with values
+	for _, branching := range bs {
+		// create MMR with specified branching
+		b.Run(fmt.Sprintf("b=%d", branching), func(b *testing.B) {
+			// extend MMR
+		})
 	}
 }
