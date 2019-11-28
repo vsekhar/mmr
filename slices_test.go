@@ -15,7 +15,7 @@ func TestReadSlices(t *testing.T) {
 	for _, s := range slices {
 		flat = append(flat, s...)
 	}
-	r, err := ioutil.ReadAll(ReadSlices(slices))
+	r, err := ioutil.ReadAll(readSlices(slices))
 	if err != nil {
 		t.Error(err)
 	}

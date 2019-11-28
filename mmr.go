@@ -153,7 +153,7 @@ func (m *mmr) nodeHash(children []int, dataHash []byte) []byte {
 		bs = append(bs, m.hashes[i].ofNode)
 	}
 	bs = append(bs, dataHash)
-	r := ReadSlices(bs)
+	r := readSlices(bs)
 	m.hasher.Reset()
 	io.Copy(m.hasher, r)
 	ret := new([hashLengthBytes]byte)[:]

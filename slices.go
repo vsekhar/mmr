@@ -24,8 +24,8 @@ func (s *sliceReader) Read(b []byte) (n int, err error) {
 	return n, nil
 }
 
-// ReadSlices returns an io.Reader that reads from a set of slices sequentially.
-func ReadSlices(s [][]byte) io.Reader {
+// readSlices returns an io.Reader that reads from a set of slices sequentially.
+func readSlices(s [][]byte) io.Reader {
 	return &sliceReader{s: s}
 }
 
