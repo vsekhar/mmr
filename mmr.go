@@ -147,6 +147,26 @@ func New(a Array, b int) Interface {
 	return ret
 }
 
+func (m *mmr) nodeHash(children []int, dataHash []byte) []byte {
+	bs := make([][]byte, 0, len(children)+1)
+	for _, i := range children {
+		bs = append(bs, m.hashes[i].ofNode)
+	}
+	bs = append(bs, dataHash)
+	r := ReadSlices(bs)
+	m.hasher.Reset()
+	io.Copy(m.hasher, r)
+	ret := new([hashLengthBytes]byte)[:]
+	n, err := m.hasher.Read(ret)
+	if n != hashLengthBytes {
+		panic("short read from hasher")
+	}
+	if err != nil {
+		panic(err)
+	}
+	return ret
+}
+
 // extend updates the MMR's data structure to cover elements [0, n), if necessary,
 // and returns the number of elements that were hashed.
 func (m *mmr) extend(n int) int {
@@ -162,24 +182,8 @@ func (m *mmr) extend(n int) int {
 		var hash hashSet
 		hash.ofData = m.array.HashAt(i)
 		m.index[base58.Encode(hash.ofData)] = i
-
 		cs := children(i, height(i, m.branching), m.branching)
-		bs := make([][]byte, 0, len(cs)+1)
-		for _, c := range cs {
-			bs = append(bs, m.hashes[c].ofNode)
-		}
-		bs = append(bs, hash.ofData)
-		m.hasher.Reset()
-		io.Copy(m.hasher, ReadSlices(bs))
-		hash.ofNode = new([hashLengthBytes]byte)[:]
-		n, err := m.hasher.Read(hash.ofNode)
-		if n != hashLengthBytes {
-			panic("short read from hasher")
-		}
-		if err != nil {
-			panic(err)
-		}
-
+		hash.ofNode = m.nodeHash(cs, hash.ofData)
 		m.hashes = append(m.hashes, hash)
 	}
 	return delta
