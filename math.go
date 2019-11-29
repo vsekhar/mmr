@@ -149,9 +149,8 @@ func height(pos, b int) int {
 		return 0
 	case pos < b:
 		return 0
-	case b == 2:
+	case b == 2: // fast path
 		var upos = uint(pos)
-		// bit-shifting fast-path for b=2
 		const allOnes = (1 << bits.UintSize) - 1
 		var peakSize uint = allOnes >> bits.LeadingZeros(upos)
 		for peakSize != 0 {
