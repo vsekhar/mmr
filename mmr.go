@@ -6,8 +6,6 @@
 package mmr
 
 import (
-	"io"
-
 	"github.com/btcsuite/btcutil/base58"
 	"golang.org/x/crypto/sha3"
 )
@@ -148,14 +146,11 @@ func New(a Array, b int) Interface {
 }
 
 func (m *mmr) nodeHash(children []int, dataHash []byte) []byte {
-	bs := make([][]byte, 0, len(children)+1)
-	for _, i := range children {
-		bs = append(bs, m.hashes[i].ofNode)
-	}
-	bs = append(bs, dataHash)
-	r := readSlices(bs)
 	m.hasher.Reset()
-	io.Copy(m.hasher, r)
+	for _, i := range children {
+		m.hasher.Write(m.hashes[i].ofNode)
+	}
+	m.hasher.Write(dataHash)
 	ret := new([hashLengthBytes]byte)[:]
 	n, err := m.hasher.Read(ret)
 	if n != hashLengthBytes {
