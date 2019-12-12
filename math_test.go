@@ -4,6 +4,7 @@ package mmr
 // independent of any specific implementation of MMRs.
 
 import (
+	"fmt"
 	"math"
 	"testing"
 )
@@ -90,16 +91,6 @@ var heightTable = [][]int{
 }
 
 func TestHeight(t *testing.T) {
-	doTestHeight(t)
-}
-
-func BenchmarkHeight(b *testing.B) {
-	for i := 0; i < b.N; i++ {
-		doTestHeight(b)
-	}
-}
-
-func doTestHeight(t testing.TB) {
 	for _, c := range heightTable {
 		pos, b, out := c[0], c[1], c[2]
 		result := height(pos, b)
@@ -107,6 +98,21 @@ func doTestHeight(t testing.TB) {
 			t.Errorf("height(%d, %d): %d (expected %d)", pos, b, result, out)
 		}
 	}
+}
+
+func BenchmarkHeight(b *testing.B) {
+	pos := 6383487
+	bs := []int{2, 3, 4, 7, 8, 12, 16, 32, 100, 1000}
+	for _, branching := range bs {
+		b.Run(fmt.Sprintf("branching-%d", branching), func(b *testing.B) {
+			for i := 0; i < b.N; i++ {
+				_ = height(pos, branching)
+			}
+		})
+	}
+}
+
+func doTestHeight(t testing.TB) {
 }
 
 func TestPeaks(t *testing.T) {
