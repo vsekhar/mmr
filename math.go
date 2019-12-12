@@ -61,12 +61,6 @@ func firstChild(pos, h, b int) int {
 	return pos - intPow(b, h)
 }
 
-// leftEdgePos returns the zero-based index at the left-most edge at zero-based
-// height h of the MMR with branching factor b.
-func leftEdgePos(h, b int) int {
-	return (b * (1 - intPow(b, h)) / (1 - b))
-}
-
 // children returns the indexes of the children of the node at index pos and height h
 // in an MMR with branching factor b. If the node at pos is a leaf, children returns nil.
 func children(pos, h, b int) []int {
@@ -76,8 +70,7 @@ func children(pos, h, b int) []int {
 	case h == 0:
 		return nil
 	default:
-		// difference between children is left-edge node index + 1 at children's level
-		delta := leftEdgePos(h-1, b) + 1
+		delta := siblingDelta(h-1, b)
 		children := make([]int, 0, b)
 		for c := firstChild(pos, h, b); c < pos; c += delta {
 			children = append(children, c)
@@ -87,11 +80,21 @@ func children(pos, h, b int) []int {
 }
 
 func rightSibling(pos, h, b int) int {
-	return pos + (intPow(b, h+1)-1)/(b-1)
+	return pos + siblingDelta(h, b)
 }
 
 func leftSibling(pos, h, b int) int {
-	return pos - (intPow(b, h+1)-1)/(b-1)
+	return pos - siblingDelta(h, b)
+}
+
+func siblingDelta(h, b int) int {
+	return (intPow(b, h+1) - 1) / (b - 1)
+}
+
+// leftEdgePos returns the zero-based index at the left-most edge at zero-based
+// height h of the MMR with branching factor b.
+func leftEdgePos(h, b int) int {
+	return siblingDelta(h, b) - 1
 }
 
 func parent(pos, h, b int) int {
