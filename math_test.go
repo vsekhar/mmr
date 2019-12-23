@@ -39,7 +39,6 @@ func TestHeight(t *testing.T) {
 func TestPeaks(t *testing.T) {
 	// {size, peaks...}
 	table := [][]int{
-		// binary
 		{1, 0},
 		{2, 0, 1},
 		{3, 2},
@@ -62,7 +61,6 @@ func TestPeaks(t *testing.T) {
 func TestLeftChild(t *testing.T) {
 	// pos, height, first child
 	table := [][]int{
-		// binary
 		{2, 1, 0},
 		{5, 1, 3},
 		{6, 2, 2},
@@ -82,7 +80,7 @@ func TestChildren(t *testing.T) {
 		{0, 0},
 		{1, 0},
 
-		// binary
+		// non-leaves
 		{2, 1, 0, 1},
 		{5, 1, 3, 4},
 		{9, 1, 7, 8},
