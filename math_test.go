@@ -97,3 +97,12 @@ func TestChildren(t *testing.T) {
 	}
 
 }
+
+func TestPath(t *testing.T) {
+	// pos, pathEntry's...
+	_ = map[int][]pathEntry{
+		0: {},
+		1: {{}, {}},
+	}
+	// compare arrays of pathEntry's: p, expected
+}
