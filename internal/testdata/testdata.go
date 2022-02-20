@@ -1,7 +1,9 @@
-package mmr
+package testdata
+
+import "github.com/vsekhar/mmr"
 
 // Pos, Height, HasChildren, Left, Right, Parent
-var Sequence = []Node{
+var Sequence = []mmr.Node{
 	{0, 0, 2, 0, 0},
 	{1, 0, 2, 0, 0},
 	{2, 1, 6, 0, 1},
@@ -20,4 +22,12 @@ var Sequence = []Node{
 	{15, 0, 17, 0, 0},
 	{16, 0, 17, 0, 0},
 	{17, 1, 21, 15, 16},
+}
+
+var FirstNode = mmr.Node{
+	Pos:    0,
+	Height: 0,
+	Parent: 2,
+	Left:   0,
+	Right:  0,
 }

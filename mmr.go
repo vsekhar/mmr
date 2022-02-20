@@ -26,6 +26,10 @@ func peaksAndHeights(n int) (peaks, heights []int) {
 	return peaks, heights
 }
 
+// Node records the positions of a node, its height, its parents and its
+// children (if any).
+//
+// The zero Node is invalid.
 type Node struct {
 	Pos         int
 	Height      int
@@ -36,6 +40,9 @@ type Node struct {
 func (n Node) HasChildren() bool { return n.Height > 0 }
 
 // Iterator supports walking the MMR data structure in amortized constant time.
+//
+// The zero iterator is a valid iterator at a position just before the first Node
+// of an MMR.
 type Iterator struct {
 	n       int
 	peaks   []int // indexes of peaks for an MMR of size n
@@ -46,8 +53,8 @@ type Iterator struct {
 // next node in the iterator's sequence.
 //
 // Next runs in amortized constant time.
-func (i *Iterator) Next() *Node {
-	r := new(Node)
+func (i *Iterator) Next() Node {
+	var r Node
 	r.Pos = i.n
 	np := len(i.peaks)
 

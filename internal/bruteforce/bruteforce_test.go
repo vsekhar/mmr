@@ -3,7 +3,7 @@ package bruteforce
 import (
 	"testing"
 
-	pkgmmr "github.com/vsekhar/mmr"
+	"github.com/vsekhar/mmr/internal/testdata"
 )
 
 func TestMMR(t *testing.T) {
@@ -14,7 +14,7 @@ func TestMMR(t *testing.T) {
 	}
 
 	itr := m.At(0)
-	for i, node := range pkgmmr.Sequence {
+	for i, node := range testdata.Sequence {
 		bruteNode := m.At(i)
 		if itr != bruteNode {
 			t.Errorf("next iterator out of sync")

@@ -32,18 +32,33 @@ sizes_loop:
 		}
 	}
 }
-func TestIterator(t *testing.T) {
-	itr := Begin()
-	for i, c := range Sequence {
-		node := itr.Next()
-		if c != *node {
-			t.Errorf("pos %d: expected {%v}, got {%v}", i, c, node)
+
+func TestIteratorStart(t *testing.T) {
+	isBeforeFirstNode := func(i *Iterator) bool {
+		if i.n != 0 {
+			return false
+		}
+		if len(i.peaks) != 0 {
+			return false
+		}
+		if len(i.heights) != 0 {
+			return false
+		}
+		return true
+	}
+	for i, itr := range []*Iterator{
+		{}, // zero
+		Begin(),
+		IterJustBefore(0),
+	} {
+		if !isBeforeFirstNode(itr) {
+			t.Errorf("iterator %d is not at before-first-node: %+v", i, *itr)
 		}
 	}
 }
 
-func nodeEquals(n *Node, bn *bruteforce.Node) bool {
-	if n == nil || bn == nil {
+func bruteforceNodeDeepEquals(n Node, bn *bruteforce.Node) bool {
+	if bn == nil {
 		return false
 	}
 	if n.Pos != bn.Index {
@@ -73,7 +88,7 @@ func TestIteratorBruteForce(t *testing.T) {
 	itr := Begin()
 	node := itr.Next()
 	for i := 0; i < n; i++ {
-		if !nodeEquals(node, bruteNode) {
+		if !bruteforceNodeDeepEquals(node, bruteNode) {
 			t.Errorf("pos %d: mismatch", i)
 		}
 		node = itr.Next()
@@ -87,7 +102,7 @@ func TestIterAt(t *testing.T) {
 	for i := 0; i < n; i++ {
 		bruteNode := m.At(i)
 		node := IterJustBefore(i).Next()
-		if !nodeEquals(node, bruteNode) {
+		if !bruteforceNodeDeepEquals(node, bruteNode) {
 			t.Errorf("pos %d: got (%v), expected (%v)", i, node, bruteNode)
 		}
 	}
