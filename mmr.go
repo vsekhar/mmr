@@ -26,7 +26,7 @@ func peaksAndHeights(n int) (peaks, heights []int) {
 	return peaks, heights
 }
 
-// Node records the positions of a node, its height, its parents and its
+// Node records the position of a node, its height, its parents and its
 // children (if any).
 //
 // The zero Node is invalid.
@@ -58,38 +58,31 @@ func (i *Iterator) Next() Node {
 	r.Pos = i.n
 	np := len(i.peaks)
 
-	// Extend peaks and heights
+	// Adding a non-leaf?
 	if len(i.heights) >= 2 && i.heights[np-1] == i.heights[np-2] {
-		// Create a peak
 		r.Left, r.Right = i.peaks[np-2], i.peaks[np-1]
 		i.peaks = i.peaks[:np-2]
-		i.peaks = append(i.peaks, r.Pos)
 		r.Height = i.heights[np-1] + 1
 		i.heights = i.heights[:np-2]
-		i.heights = append(i.heights, r.Height)
-	} else {
-		// Add a leaf
-		i.peaks = append(i.peaks, r.Pos)
-		r.Height = 0
-		i.heights = append(i.heights, r.Height)
 	}
 
-	// Parents
-	if len(i.heights) >= 2 && i.heights[len(i.heights)-1] == i.heights[len(i.heights)-2] {
-		// Next iteration will create a new peak, so we are the right child
-		r.Parent = r.Pos + 1 // next node
+	// Record parent
+	if len(i.heights) >= 1 && r.Height == i.heights[len(i.heights)-1] {
+		r.Parent = r.Pos + 1 // from right child (next node)
 	} else {
-		// We are the left child
-		r.Parent = r.Pos + pow2(r.Height+1) // inverse of left child, below
+		r.Parent = r.Pos + pow2(r.Height+1) // from left child (inverse of left child below)
 	}
 
-	// Children
+	// Record children
 	if r.Height > 0 {
-		r.Left = r.Pos - pow2(r.Height) // left child
-		r.Right = r.Pos - 1             // right child
+		r.Left = r.Pos - pow2(r.Height)
+		r.Right = r.Pos - 1
 	}
 
+	i.peaks = append(i.peaks, r.Pos)
+	i.heights = append(i.heights, r.Height)
 	i.n++
+
 	return r
 }
 

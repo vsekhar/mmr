@@ -1,7 +1,7 @@
-// Package bruteforce constructs and fully populates an MMR with notes
-// capturing positions, heights and children. These MMRs can be used
-// to validate more efficient algorithms to traverse MMRs that do not
-// construct full trees.
+// Package bruteforce constructs and fully populates an in-memory MMR
+// nodes recording positions, heights and pointers to in-memeory
+// children. These MMRs can be used to validate more efficient
+// algorithms to traverse MMRs that do not construct full trees.
 package bruteforce
 
 import (
