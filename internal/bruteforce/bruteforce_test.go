@@ -26,7 +26,7 @@ func TestMMR(t *testing.T) {
 		if bruteNode.Height != node.Height {
 			t.Errorf("expected height %d, got %d", node.Height, bruteNode.Height)
 		}
-		if node.HasChildren {
+		if node.HasChildren() {
 			if bruteNode.Left == nil {
 				t.Errorf("expected left child with index %d, got nil", node.Left)
 			} else if bruteNode.Left.Index != node.Left {

@@ -30,11 +30,12 @@ type Node struct {
 	Pos         int
 	Height      int
 	Parent      int
-	HasChildren bool
-	Left, Right int
+	Left, Right int // set only if Height > 0
 }
 
-// Iterator supports walking the MMR data structure in constant time.
+func (n Node) HasChildren() bool { return n.Height > 0 }
+
+// Iterator supports walking the MMR data structure in amortized constant time.
 type Iterator struct {
 	n       int
 	peaks   []int // indexes of peaks for an MMR of size n
@@ -44,7 +45,7 @@ type Iterator struct {
 // Next returns the index and height (both counting from zero) of the
 // next node in the iterator's sequence.
 //
-// Next runs in constant time.
+// Next runs in amortized constant time.
 func (i *Iterator) Next() *Node {
 	r := new(Node)
 	r.Pos = i.n
@@ -77,7 +78,6 @@ func (i *Iterator) Next() *Node {
 
 	// Children
 	if r.Height > 0 {
-		r.HasChildren = true
 		r.Left = r.Pos - pow2(r.Height) // left child
 		r.Right = r.Pos - 1             // right child
 	}

@@ -52,7 +52,7 @@ func nodeEquals(n *Node, bn *bruteforce.Node) bool {
 	if n.Height != bn.Height {
 		return false
 	}
-	if n.HasChildren {
+	if n.HasChildren() {
 		if bn.Left == nil || bn.Left.Index != n.Left {
 			return false
 		}
