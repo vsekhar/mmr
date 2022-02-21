@@ -11,13 +11,12 @@ func _() {
 	_ = x[UNSPECIFIED-0]
 	_ = x[PUSHPOS-1]
 	_ = x[PUSHVAL-2]
-	_ = x[PUSHEMPTY-3]
-	_ = x[POP-4]
+	_ = x[POP-3]
 }
 
-const _opcode_name = "UNSPECIFIEDPUSHPOSPUSHVALPUSHEMPTYPOP"
+const _opcode_name = "UNSPECIFIEDPUSHPOSPUSHVALPOP"
 
-var _opcode_index = [...]uint8{0, 11, 18, 25, 34, 37}
+var _opcode_index = [...]uint8{0, 11, 18, 25, 28}
 
 func (i opcode) String() string {
 	if i < 0 || i >= opcode(len(_opcode_index)-1) {

@@ -46,7 +46,7 @@ func (n Node) HasChildren() bool { return n.Height > 0 }
 
 func (n Node) child(childPos int) Node {
 	if !(n.Height > 0) {
-		panic("leaf has no left child")
+		panic("leaf has no child")
 	}
 	r := Node{
 		Pos:    childPos,
