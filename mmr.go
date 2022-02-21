@@ -10,6 +10,11 @@ import (
 func pow2(x int) int { return 2 << (x - 1) }
 func log2(x int) int { return bits.Len(uint(x)) - 1 }
 
+func leftChild(pos, height int) int            { return pos - pow2(height) }
+func parentFromLeftChild(pos, height int) int  { return pos + pow2(height+1) }
+func rightChild(pos, height int) int           { return pos - 1 }
+func parentFromRightChild(pos, height int) int { return pos + 1 }
+
 // peaksAndHeights returns the indexes of peaks and their heights for
 // an an MMR of size n.
 //
@@ -39,6 +44,47 @@ type Node struct {
 
 func (n Node) HasChildren() bool { return n.Height > 0 }
 
+func (n Node) child(childPos int) Node {
+	if !(n.Height > 0) {
+		panic("leaf has no left child")
+	}
+	r := Node{
+		Pos:    childPos,
+		Height: n.Height - 1,
+		Parent: n.Pos,
+	}
+	if r.HasChildren() {
+		r.Left, r.Right = leftChild(r.Pos, r.Height), rightChild(r.Pos, r.Height)
+	}
+	return r
+}
+
+// LeftChild returns the Node corresponding to the left child of n.
+//
+// If n is a leaf, LeftChild panics.
+//
+// LeftChild runs in constant time.
+func (n Node) LeftChild() Node {
+	return n.child(leftChild(n.Pos, n.Height))
+}
+
+// RightChild returns the Node corresponding to the right child of n
+//
+// If n is a leaf, RightChild panics.
+//
+// RightChild runs in constant time.
+func (n Node) RightChild() Node {
+	return n.child(rightChild(n.Pos, n.Height))
+}
+
+// At returns the Node at position pos.
+//
+// At runs in log2(pos) time. Iterator can be used to obtain sequences of
+// Nodes in amortized constant time.
+func At(pos int) Node {
+	return IterJustBefore(pos).Next()
+}
+
 // Iterator supports walking the MMR data structure in amortized constant time.
 //
 // The zero iterator is a valid iterator at a position just before the first Node
@@ -58,7 +104,7 @@ func (i *Iterator) Next() Node {
 	r.Pos = i.n
 	np := len(i.peaks)
 
-	// Adding a non-leaf?
+	// Non-leaf?
 	if len(i.heights) >= 2 && i.heights[np-1] == i.heights[np-2] {
 		r.Left, r.Right = i.peaks[np-2], i.peaks[np-1]
 		i.peaks = i.peaks[:np-2]
@@ -66,17 +112,14 @@ func (i *Iterator) Next() Node {
 		i.heights = i.heights[:np-2]
 	}
 
-	// Record parent
 	if len(i.heights) >= 1 && r.Height == i.heights[len(i.heights)-1] {
-		r.Parent = r.Pos + 1 // from right child (next node)
+		r.Parent = parentFromRightChild(r.Pos, r.Height)
 	} else {
-		r.Parent = r.Pos + pow2(r.Height+1) // from left child (inverse of left child below)
+		r.Parent = parentFromLeftChild(r.Pos, r.Height)
 	}
-
-	// Record children
 	if r.Height > 0 {
-		r.Left = r.Pos - pow2(r.Height)
-		r.Right = r.Pos - 1
+		r.Left = leftChild(r.Pos, r.Height)
+		r.Right = rightChild(r.Pos, r.Height)
 	}
 
 	i.peaks = append(i.peaks, r.Pos)

@@ -28,3 +28,12 @@ func TestIterator(t *testing.T) {
 		}
 	}
 }
+
+func TestNodeAt(t *testing.T) {
+	for i, n := range testdata.Sequence {
+		n2 := mmr.At(n.Pos)
+		if n != n2 {
+			t.Errorf("pos %d: expected %+v, got %+v", i, n, n2)
+		}
+	}
+}
