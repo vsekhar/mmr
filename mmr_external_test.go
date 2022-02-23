@@ -8,28 +8,26 @@ import (
 )
 
 func TestFirstNode(t *testing.T) {
-	zero := &mmr.Iterator{}
-	if n1 := zero.Next(); n1 != testdata.FirstNode {
-		t.Errorf("zero iterator does not start with first node, got %+v", n1)
+	zero := mmr.MMR{}
+	if n1 := mmr.Advance(&zero); n1 != testdata.FirstNode {
+		t.Errorf("zero MMR does not start with first node, got %+v", n1)
 	}
-	if n2 := mmr.Begin().Next(); n2 != testdata.FirstNode {
-		t.Errorf("Begin iterator does not start with first node, got %+v", n2)
-	}
-	if n3 := mmr.IterJustBefore(0).Next(); n3 != testdata.FirstNode {
-		t.Errorf("IterJustBefore(0) does not start with first node, got ")
+	new0 := mmr.New(0)
+	if n3 := mmr.Advance(&new0); n3 != testdata.FirstNode {
+		t.Errorf("New(0) does not start with first node, got node at pos %d", n3.Pos)
 	}
 }
-func TestIterator(t *testing.T) {
-	itr := mmr.Begin()
+func TestAdvance(t *testing.T) {
+	m := mmr.MMR{}
 	for i, c := range testdata.Sequence {
-		node := itr.Next()
+		node := mmr.Advance(&m)
 		if c != node {
 			t.Errorf("pos %d: expected {%v}, got {%v}", i, c, node)
 		}
 	}
 }
 
-func TestNodeAt(t *testing.T) {
+func TestAt(t *testing.T) {
 	for i, n := range testdata.Sequence {
 		n2 := mmr.At(n.Pos)
 		if n != n2 {

@@ -3,28 +3,33 @@ package mmr
 import (
 	"fmt"
 	"strings"
-	"testing"
 )
 
-//go:generate stringer -type=opcode
+//go:generate stringer -type=OpCode
 
-type opcode int
+type OpCode int
 
 const (
-	UNSPECIFIED opcode = iota
+	UNSPECIFIED OpCode = iota
 	PUSHPOS
-	PUSHVAL
+	PUSHINPUT
 	POP
 )
 
-type pathEntry struct {
-	op  opcode
+// PathEntry is a single operation in a Path.
+type PathEntry struct {
+	op  OpCode
 	pos int
 }
 
-type path []pathEntry
+// Path represents a path through an MMR that is used to prove inclusion and consistency.
+type Path []PathEntry
 
-func (p path) String() string {
+func (p *Path) push(e PathEntry) { *p = append(*p, e) }
+func (p *Path) pop() PathEntry   { var v PathEntry; v, *p = (*p)[len(*p)-1], (*p)[:len(*p)-1]; return v }
+
+// String returns a string describing a Path.
+func (p Path) String() string {
 	s := make([]string, 0, len(p))
 	for i, e := range p {
 		s = append(s, fmt.Sprintf("%d:%s(%d)", i, e.op, e.pos))
@@ -32,58 +37,63 @@ func (p path) String() string {
 	return strings.Join(s, ", ")
 }
 
-type stack []int
-
-func (s *stack) pop() int   { var v int; v, *s = (*s)[len(*s)-1], (*s)[:len(*s)-1]; return v }
-func (s *stack) push(x int) { *s = append(*s, x) }
-
-// matchesDigest returns true if the positions in s (in pop order)
-// match the positions of the peaks of an MMR of size n.
-//
-// matchesDigest runs in log2(n) time.
-func (s stack) matchesDigest(n int) bool {
-	var peakStack stack
-	peaks, _ := peaksAndHeights(n)
-	if len(s) != len(peaks) {
+func (p Path) Equals(p2 Path) bool {
+	if len(p) != len(p2) {
 		return false
 	}
-	for _, p := range peaks {
-		peakStack.push(p)
-	}
-	for i := range s {
-		if s[i] != peakStack[i] {
+	for i := range p {
+		if p[i] != p2[i] {
 			return false
 		}
 	}
 	return true
 }
 
-func run(t *testing.T, p path, pos, n int) stack {
-	var s stack
+// evalWithValue executes and condenses Path p into the minimum Path corresponding
+// to the digest of an MMR.
+//
+// The result of the evalWithValue method of Path can be compared to the result
+// of the MMR Digest function to determine if the path constitutes a valid proof up to
+// the digest of a given MMR.
+//
+// If pos is non-negative, it is a position value that must be used
+// exactly once by p (e.g. for inclusion proofs).
+//
+// evalWithValue runs in log2(n)^2 where n is the size of the originating MMR.
+func (p Path) evalWithValue(pos int) Path {
+	if pos < 0 {
+		panic("bad position value for inclusionDigest (use consistencyDigest?)")
+	}
+	return p.evalImpl(pos)
+}
 
+func (p Path) eval() Path {
+	return p.evalImpl(-1)
+}
+
+func (p Path) evalImpl(pos int) Path {
+	var s Path
 	valUse := 0
-	for ip, o := range p {
+	for _, o := range p {
 		switch o.op {
 		case PUSHPOS:
-			s.push(o.pos)
-		case PUSHVAL:
-			s.push(pos)
+			s.push(PathEntry{op: PUSHPOS, pos: o.pos})
+		case PUSHINPUT:
+			if pos < 0 {
+				panic("path expects a value, none provided")
+			}
+			s.push(PathEntry{op: PUSHPOS, pos: pos})
 			valUse++
 		case POP:
-			n1, n2 := At(s.pop()), At(s.pop())
-			if n1.Height != n2.Height {
-				t.Errorf("%d: different heights", ip)
-			}
-			if n1.Parent != n2.Parent {
-				t.Errorf("%d: different parents", ip)
-			}
-			s.push(n2.Parent)
+			s.pop()
+			s.pop()
+			s.push(PathEntry{op: PUSHPOS, pos: o.pos})
+		default:
+			panic(fmt.Sprintf("path: bad instruction in condense (%s)", o.op))
 		}
 	}
-
 	if pos >= 0 && valUse != 1 {
-		t.Errorf("valUse: %d, expected 1", valUse)
+		panic(fmt.Sprintf("pos used: %d times, expected 1", valUse))
 	}
-
 	return s
 }

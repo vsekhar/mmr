@@ -27,15 +27,16 @@ func TestMMR(t *testing.T) {
 			t.Errorf("expected height %d, got %d", node.Height, bruteNode.Height)
 		}
 		if node.HasChildren() {
+			left, right := node.LeftChild().Pos, node.RightChild().Pos
 			if bruteNode.Left == nil {
-				t.Errorf("expected left child with index %d, got nil", node.Left)
-			} else if bruteNode.Left.Index != node.Left {
-				t.Errorf("expected left index %d, got %d", node.Left, bruteNode.Left.Index)
+				t.Errorf("expected left child with index %d, got nil", left)
+			} else if bruteNode.Left.Index != left {
+				t.Errorf("expected left index %d, got %d", left, bruteNode.Left.Index)
 			}
 			if bruteNode.Right == nil {
-				t.Errorf("expected right child with index %d, got nil", node.Right)
-			} else if bruteNode.Right.Index != node.Right {
-				t.Errorf("expected right index %d, got %d", node.Right, bruteNode.Right.Index)
+				t.Errorf("expected right child with index %d, got nil", right)
+			} else if bruteNode.Right.Index != right {
+				t.Errorf("expected right index %d, got %d", right, bruteNode.Right.Index)
 			}
 		} else {
 			if bruteNode.Left != nil {

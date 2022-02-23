@@ -45,19 +45,13 @@ func TestConsistency(t *testing.T) {
 	for _, c := range cases {
 		n1, n2 := c[0], c[1]
 		t.Run(fmt.Sprintf("case {%d, %d}", n1, n2), func(t *testing.T) {
-			p1, p2 := Consistency(n1, n2)
-			s1 := run(t, p1, -1, n1)
-			if !s1.matchesDigest(n1) {
-				t.Errorf("digest1 mismatch")
+			m1, m2 := New(n1), New(n2)
+			path := append(m1.Digest(), m1.To(m2)...)
+			path = path.eval()
+			d2 := m2.Digest()
+			if !d2.Equals(path) {
+				t.Errorf("digest mismatch\n  digest: %+v\n  path: %+v", d2, path)
 			}
-
-			p2 = append(p1, p2...)
-			s2 := run(t, p2, -1, n2)
-			if !s2.matchesDigest(n2) {
-				t.Errorf("digest2 mismatch\np1: %+v\np2: %+v", p1, p2)
-			}
-			// t.Logf("p1: %+v", p1)
-			// t.Logf("p2: %+v", p2)
 		})
 	}
 }

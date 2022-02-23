@@ -54,12 +54,21 @@ func TestInclusionProof(t *testing.T) {
 	for _, c := range cases {
 		pos, n := c[0], c[1]
 		t.Run(fmt.Sprintf("case {%d, %d}", pos, n), func(t *testing.T) {
-			// t.Logf("Case %d (pos: %d, n: %d)", i, pos, n)
-			p := Inclusion(pos, n)
-			// t.Logf("  Path: %+v", p)
-			s := run(t, p, pos, n)
-			if !s.matchesDigest(n) {
-				t.Errorf("digest check failed")
+			m := New(n)
+			p := m.Has(pos)
+			valUse := 0
+			for _, e := range p {
+				if e.op == PUSHINPUT {
+					valUse++
+				}
+			}
+			if valUse != 1 {
+				t.Errorf("PUSHVAL use %d, expected 1", valUse)
+			}
+			s := p.evalWithValue(pos)
+			d := m.Digest()
+			if !s.Equals(d) {
+				t.Errorf("digest check failed\n  p: %+v\n  s: %+v\n  d: %+v", p, s, d)
 			}
 		})
 	}
